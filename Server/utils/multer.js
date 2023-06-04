@@ -1,14 +1,21 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
-module.exports = multer({
-  storage: multer.diskStorage({}),
-  fileFilter: (req, file, cb) => {
-    let ext = path.extname(file.originalname);
-    console.log(ext);
-    if (ext !== ".jpg" && ext !== ".jpeg" && ext !== ".png") {
-      cb(new Error("File type is not supported"), false);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const destinationDir = "image";
+    if (!fs.existsSync(destinationDir)) {
+      fs.mkdirSync(destinationDir);
     }
-    cb(null, true);
+    cb(null, destinationDir);
+  },
+  filename: (req, file, cb) => {
+    console.log(file);
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
+
+const upload = multer({ storage: storage });
+
+module.exports = upload;

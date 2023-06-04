@@ -60,9 +60,7 @@ const authController = {
   //Login user
   loginUser: async (req, res) => {
     try {
-      const user = await User.findOne({ username: req.body.username }).select(
-        "+password"
-      );
+      const user = await User.findOne({ username: req.body.username });
       if (!user) return res.status(404).json({ message: "Incoret Password" });
       const vaildPassword = await bcrypt.compare(
         req.body.password,
@@ -81,11 +79,10 @@ const authController = {
           path: "/",
           sameSite: "none",
         });
-        const returnedUser = {
-          ...user._doc,
-          accessToken: accessToken,
-        };
-        res.status(200).json(returnedUser);
+        const { password, verificationCode, createdAt, updatedAt, ...others } =
+          user._doc;
+        const userDto = { ...others, accessToken };
+        return res.status(200).json(userDto);
       }
     } catch (error) {
       res.status(500).json(error);

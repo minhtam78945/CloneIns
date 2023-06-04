@@ -27,7 +27,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      select: false,
       minlength: [8, "Must be 8 characters or more"],
     },
     isAdmin: {

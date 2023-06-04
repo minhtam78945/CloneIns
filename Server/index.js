@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+
 const bodyParser = require("body-parser");
 const authRoute = require("./Routes/auth.js");
 const userRoute = require("./Routes/user.js");
@@ -22,6 +23,12 @@ mongoose
 app.use(cors());
 app.use(express.json());
 app.use(morgan("common"));
+app.use(
+  bodyParser.raw({
+    type: "image/type",
+    limit: "10mb",
+  })
+);
 
 app.get("/v1/", (req, res) => {
   res.send("Hello Word");
