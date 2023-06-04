@@ -23,12 +23,24 @@ const postController = {
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
         return res.status(200).json(savedPost);
+      } else {
+        const makePost = {
+          ...req.body,
+          username: user.username,
+          avaUrl: user.profilePicture,
+        };
+        const newPost = new Post(makePost);
+        const savedPost = await newPost.save();
+        return res.status(200).json(savedPost);
       }
-      return res.status(200).json("ok");
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: error.message });
     }
+  },
+  //deleted The Post
+  deletePost: async (req, res) => {
+    
   },
 };
 
