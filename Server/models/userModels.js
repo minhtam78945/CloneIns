@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
       default:
         "https://i.pinimg.com/736x/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg",
     },
+    verificationCode: {
+      type: String,
+      default: null,
+    },
     theme: {
       type: String,
       default: "#ff9051",

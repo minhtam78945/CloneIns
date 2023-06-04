@@ -3,6 +3,19 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const roundSalt = 10;
 const sendMail = require("../utils/mail");
+const generateVerificationCode = () => {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const codeLength = 6; // Length of the verification code
+  let verificationCode = "";
+
+  for (let i = 0; i < codeLength; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    verificationCode += characters.charAt(randomIndex);
+  }
+
+  return verificationCode;
+};
 
 const authController = {
   // REGISTER USER
@@ -88,44 +101,61 @@ const authController = {
     try {
       const { email } = req.body;
       if (!email) {
-        return res.staus(403).json("Missing Email");
+        return res.status(403).json("Missing Email");
       }
       const user = await User.findOne({ email });
-      console.log(user);
       if (!user) {
-        return res.staus(403).json("Not found user");
+        return res.status(403).json("User not found");
       }
-      const resetToken = jwt.sign(
-        { id: user.id, isAdmin: user.isAdmin },
-        process.env.JWT_KEY,
-        {
-          expiresIn: "1h",
-        }
-      );
-
-      await user.save();
-      const resetPasswordLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+      const verificationCode = generateVerificationCode();
+      user.verificationCode = verificationCode;
+      const returnUser = await user.save();
+      console.log("Return User : ", returnUser);
+      const resetPasswordLink = `${process.env.CLIENT_URL}/reset-password?code=${verificationCode}`;
       const html = `
-      <h2>Password Reset</h2>
-      <p>Hi ${user.username},</p>
-      <p>You have requested to reset your password. Click on the link below to reset your password:</p>
-      <a href="${resetPasswordLink}">${resetPasswordLink}</a>
-      <p>If you did not request this, please ignore this email.</p>
-    `;
+        <h2>Password Reset</h2>
+        <p>Hi ${user.username},</p>
+        <p>You have requested to reset your password. Use the verification code below to proceed:</p>
+        <p>Verification Code: <strong>${verificationCode}</strong></p>
+        <a href="${resetPasswordLink}">Reset Password</a>
+        <p>If you did not request this, please ignore this email.</p>
+      `;
       const mailOptions = {
-        email: email,
+        email: user.email,
         html,
       };
-      const rs = await sendMail(mailOptions);
-      return res.status(200).json({
-        success: true,
-        rs,
-      });
+      await sendMail(mailOptions);
+      return res
+        .status(200)
+        .json({ message: "Verification code sent to email" });
     } catch (error) {
       return res.status(500).json(error);
     }
   },
   //ResetPassword
+  resetPassword: async (req, res) => {
+    try {
+      const { code, newPassword } = req.body;
+      if (!code || !newPassword) {
+        return res
+          .status(400)
+          .json("Missing verification code or new password");
+      }
+      const user = await User.findOne({ verificationCode: code });
+      if (!user) {
+        return res.status(404).json("Invalid verification code");
+      }
+      // Reset the user's password
+      const salt = await bcrypt.genSalt(roundSalt);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      user.password = hashedPassword;
+      user.verificationCode = null;
+      await user.save();
+      return res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+      return res.status(500).json(error);
+    }
+  },
 };
 
 module.exports = authController;
