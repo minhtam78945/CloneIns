@@ -14,4 +14,5 @@ router.put(
   middwareController.verifyTokenAndUserAuthorization,
   userController.updateUser
 );
+
 module.exports = router;

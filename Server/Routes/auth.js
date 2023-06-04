@@ -11,4 +11,6 @@ router.post(
   middwareController.verifyToken,
   authController.logOutUser
 );
+//fortgotPassword
+router.get("/forgotPassword", authController.forgotPassword);
 module.exports = router;
