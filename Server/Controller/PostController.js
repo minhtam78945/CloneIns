@@ -40,7 +40,30 @@ const postController = {
   },
   //deleted The Post
   deletePost: async (req, res) => {
-    
+    try {
+      const post = await Post.findById(req.params.id);
+      await Post.findByIdAndDelete(req.params.id);
+      if (post.cloundinaryId) {
+        await cloudinary.uploader.destroy(post.cloundinaryId);
+      }
+      return res.status(200).json("Deleted Post compeleted");
+    } catch (error) {
+      return res.status(500).json(error);
+    }
+  },
+  //update the Post
+  updatePost: async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id.trim());
+      if (post.userId === req.body.userId) {
+        await post.updateOne({ $set: req.body });
+        res.status(200).json("Post has been updated");
+      } else {
+        res.status(403).json("You can only update your post");
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
   },
 };
 

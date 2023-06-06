@@ -11,6 +11,8 @@ router.post(
   middwareController.verifyToken,
   authController.logOutUser
 );
+//RefreshToken
+router.post("/refreshtoken", authController.requsetToken);
 //fortgotPassword
 router.get("/forgotPassword", authController.forgotPassword);
 router.put("/resetPassword", authController.resetPassword);

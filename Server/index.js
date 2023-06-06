@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 const authRoute = require("./Routes/auth.js");
 const userRoute = require("./Routes/user.js");
 const postRoute = require("./Routes/Post.js");
+const cookieParser = require("cookie-parser");
 dotenv.config();
 mongoose
   .connect(process.env.MONGOOSEdb_URL)
@@ -29,6 +30,7 @@ app.use(
     limit: "10mb",
   })
 );
+app.use(cookieParser());
 
 app.get("/v1/", (req, res) => {
   res.send("Hello Word");

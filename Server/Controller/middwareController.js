@@ -19,9 +19,19 @@ const middwareController = {
   },
   verifyTokenAndUserAuthorization: (req, res, next) => {
     middwareController.verifyToken(req, res, () => {
-      console.log(req.params.id);
-      console.log(req.user.id);
+      console.log("Params : ", req.params.id);
+      console.log("User id : ", req.user.id);
       if (req.user.id === req.params.id.trim() || req.user.isAdmin) {
+        next();
+      } else {
+        return res.status(403).json("You're not allowed to do that!");
+      }
+    });
+  },
+  verifyTokenAndUserPostAuthorization: (req, res, next) => {
+    middwareController.verifyToken(req, res, () => {
+      console.log(req.user.id);
+      if (req.user.id === req.body.userId || req.user.isAdmin) {
         next();
       } else {
         return res.status(403).json("You're not allowed to do that!");

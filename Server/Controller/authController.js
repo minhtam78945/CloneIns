@@ -50,7 +50,7 @@ const authController = {
     );
   },
   //RefreshToken when user overtime accessToken
-  generateRefereshTokem: (user) => {
+  generateRefereshToken: (user) => {
     return jwt.sign(
       { id: user.id, isAdmin: user.isAdmin },
       process.env.JWT_KEY_REFRESHTOKEN,
@@ -72,10 +72,10 @@ const authController = {
         // Generate AccessToken
         const accessToken = authController.generateAccessToken(user);
         //Generate RefereshToken
-        const refereshToken = authController.generateRefereshTokem(user);
-        res.cookie("rrefreshToken", refereshToken, {
-          httpOnly: true,
-          secure: true,
+        const refereshToken = authController.generateRefereshToken(user);
+        res.cookie("refreshToken", refereshToken, {
+          httpOnly: false,
+          secure: false,
           path: "/",
           sameSite: "none",
         });
@@ -88,6 +88,35 @@ const authController = {
       res.status(500).json(error);
       console.log(error.message);
     }
+  },
+  //Request Accestoken by RefreshToken
+
+  //when accessTokne overtime it will have refreshTokne create new AccessToken
+  requsetToken: async (req, res) => {
+    //Take refresh token from user
+    console.log(req.cookies.refreshToken);
+    const refreshToken = req.cookies.refreshToken;
+    //Send error if token is not valid
+    if (!refreshToken) return res.status(401).json("You're not authenticated");
+
+    jwt.verify(refreshToken, process.env.JWT_KEY_REFRESHTOKEN, (err, user) => {
+      if (err) {
+        console.log(err);
+      }
+      //create new access token, refresh token and send to user
+      const newAccessToken = authController.generateAccessToken(user);
+      const newRefreshToken = authController.generateRefereshToken(user);
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict",
+      });
+      res.status(200).json({
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      });
+    });
   },
   logOutUser: async (req, res) => {
     res.status(200).json("Logged out successfully!");
