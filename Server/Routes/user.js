@@ -14,5 +14,11 @@ router.put(
   middwareController.verifyTokenAndUserAuthorization,
   userController.updateUser
 );
-
+//search User
+router.get("/", middwareController.verifyToken, userController.searchAllUser);
+router.put(
+  "/:id/follow",
+  middwareController.verifyToken,
+  userController.followUser
+);
 module.exports = router;

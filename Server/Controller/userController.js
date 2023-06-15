@@ -10,7 +10,7 @@ const userController = {
       const user = await User.findById(req.params.id);
       return res.status(200).json(user);
     } catch (error) {
-      return res.status(500).json(err);
+      return res.status(500).json(error);
     }
   },
   //deleted User
@@ -55,6 +55,65 @@ const userController = {
       return res.status(200).json(returnUser);
     } catch (error) {
       return res.status(200).json(error);
+    }
+  },
+  //Search user
+  searchAllUser: async (req, res) => {
+    try {
+      const username = req.query.username.toLowerCase();
+      const user = await User.find({
+        username: { $regex: username },
+      })
+        .limit(5)
+        .select("username")
+        .exec();
+      if (user.length === 0) {
+        return res.status(403).json("Not found user");
+      }
+      return res.status(200).json(user);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json(error);
+    }
+  },
+  //Followr User
+  followUser: async (req, res) => {
+    if (req.body.userId !== req.params.id) {
+      try {
+        const user = await User.findById(req.params.id);
+        if (!user.followers.includes(req.body.userId)) {
+          await User.findByIdAndUpdate(req.params.id, {
+            $push: { followers: req.body.userId },
+          });
+          const updaeUserFollower = await User.findByIdAndUpdate(
+            req.body.userId,
+            {
+              $push: { followings: req.params.id },
+            },
+            {
+              returnDocument: "after",
+            }
+          );
+          return res.status(200).json(updaeUserFollower);
+        } else {
+          await User.findByIdAndUpdate(req.params.id, {
+            $pull: { followers: req.body.userId },
+          });
+          const updateUser = await User.findByIdAndUpdate(
+            req.body.userId,
+            {
+              $pull: { followings: req.params.id },
+            },
+            { returnDocument: "after" }
+          );
+          return res.status(200).json(updateUser);
+        }
+      } catch (error) {
+        console.log(error);
+        return res.status(500).json(error);
+      }
+    } else {
+      console.log("You can not follow yourself");
     }
   },
 };
