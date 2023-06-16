@@ -21,4 +21,15 @@ router.put(
   middwareController.verifyTokenAndUserPostAuthorization,
   postContronller.updatePost
 );
+// Like and dislike pots
+router.put(
+  "/:id/like",
+  middwareController.verifyToken,
+  postContronller.likeAndDislike
+);
+router.put(
+  "/:id/dislike",
+  middwareController.verifyToken,
+  postContronller.disLikeAndLike
+);
 module.exports = router;

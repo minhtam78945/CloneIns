@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "#ff9051",
     },
+    karmas: {
+      type: Number,
+      default: 0,
+    },
     followers: {
       type: Array,
       default: [],

@@ -65,6 +65,71 @@ const postController = {
       res.status(500).json(err);
     }
   },
+  //LiKE AND DISLIKE FOR POST
+  likeAndDislike: async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id);
+      if (
+        !post.upLike.includes(req.body.userId) &&
+        post.dislike.includes(req.body.userId)
+      ) {
+        await post.updateOne({ $push: { upLike: req.body.userId } });
+        await post.updateOne({ $pull: { dislike: req.body.userId } });
+        await User.findOneAndUpdate(
+          { _id: post.userId },
+          { $inc: { karmas: 10 } }
+        );
+        return res.status(200).json("Post liked");
+      } else if (
+        !post.upLike.includes(req.body.userId) &&
+        !post.dislike.includes(req.body.userId)
+      ) {
+        await post.updateOne({ $push: { upLike: req.body.userId } });
+        await User.findByIdAndUpdate(req.body.userId);
+        return res.status(200).json("Post is upvoted!");
+      } else if (post.upLike.includes(req.body.userId)) {
+        await post.updateOne({ $pull: { upLike: req.body.userId } });
+        await User.findOneAndUpdate(
+          { _id: post.userId },
+          { $inc: { karmas: 10 } }
+        );
+        return res.status(200).json("Lose like because double click");
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json(error);
+    }
+  },
+  disLikeAndLike: async (req, res) => {
+    const { userId } = req.body;
+    const post = await Post.findByIdAndUpdate(req.params.id);
+    if (post.upLike.includes(userId) && !post.dislike.includes(userId)) {
+      await post.updateOne({ $push: { dislike: userId } });
+      await post.updateOne({ $pull: { uplike: userId } });
+      await User.findByIdAndUpdate(
+        { _id: post.userId },
+        { $inc: { karmas: 10 } }
+      );
+      return res.status(200).json("DisLike successfull");
+    } else if (
+      !post.upLike.includes(userId) &&
+      !post.dislike.includes(userId)
+    ) {
+      await post.updateOne({ $push: { dislike: userId } });
+      await User.findByIdAndUpdate(
+        { _id: post.userId },
+        { $inc: { karmas: 10 } }
+      );
+      return res.status(200).json("DisLike successfull");
+    } else if (post.dislike.includes(userId)) {
+      await post.updateOne({ $pull: { dislike: userId } });
+      await User.findOneAndUpdate(
+        { _id: post.userId },
+        { $inc: { karmas: 10 } }
+      );
+      return res.status(200).json("Lose dislike because double click");
+    }
+  },
 };
 
 module.exports = postController;

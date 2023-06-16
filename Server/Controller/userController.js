@@ -95,7 +95,9 @@ const userController = {
             }
           );
           return res.status(200).json(updaeUserFollower);
-        } else {
+        }
+        // unFollower
+         else {
           await User.findByIdAndUpdate(req.params.id, {
             $pull: { followers: req.body.userId },
           });
